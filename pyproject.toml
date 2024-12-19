@@ -71,14 +71,6 @@ force-wrap-aliases = true
 known-local-folder = ["src"]
 known-first-party = ["flux"]
 
-[tool.pyright]
-include = ["src"]
-exclude = [
-  "**/__pycache__", # cache directories
-  "./typings",      # generated type stubs
-]
-stubPath = "./typings"
-
 [tool.tomlsort]
 in_place = true
 no_sort_tables = true
