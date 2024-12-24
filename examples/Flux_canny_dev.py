@@ -7,7 +7,7 @@ import numpy as np
 
 pipe = FluxControlPipeline.from_pretrained("./models/FLUX.1-Canny-dev", torch_dtype=torch.bfloat16).to("cuda")
 
-prompt = "emtpy room, interior design, clean, tidy, ambient lighting"
+prompt = "full of furniture, living room, interior design, clean, tidy, ambient lighting, realistic, natural, high-quality"
 control_image = load_image("./inputs/a1.jpeg")
 w, h = control_image.size
 

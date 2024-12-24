@@ -82,6 +82,7 @@ def main():
         inputs["control_image"] = control_image
     if "img2img" in args.pipeline:
         inputs["image"] = image
+        inputs["strength"] = 0.8
 
     # Generate image
     output = pipe(

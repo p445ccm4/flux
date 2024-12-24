@@ -26,7 +26,7 @@ pipe = FluxControlPipeline.from_pretrained(
 
 # Load the input image from the provided path
 image = load_image(args.input_image)
-pipe_prior_output = pipe_prior_redux(image)
+pipe_prior_output = pipe_prior_redux(image, prompt="full of furniture, living room, interior design, clean, tidy, ambient lighting, realistic, natural, high-quality")
 w, h = image.size
 fx = min(w/1920, h/1080)
 w, h = int(w/fx), int(h/fx)

@@ -13,10 +13,11 @@ output_dir="$2"
 mkdir -p "$output_dir"
 
 # Define the array of pipeline options
-pipelines=("img2img" "canny" "depth" "redux" "depth_img2img" "canny_img2img" "depth_redux" "canny_redux")
+# pipelines=("img2img" "canny" "depth" "redux" "depth_img2img" "canny_img2img" "depth_redux" "canny_redux")
+pipelines=("img2img" "depth_img2img" "canny_img2img")
 
 # Set the base prompt
-prompt="interior design, ambient lighting, realistic"
+prompt="full of furniture, interior design, clean, tidy, ambient lighting, realistic, natural, high-quality"
 
 # Loop through the pipeline options
 for pipeline in "${pipelines[@]}"; do

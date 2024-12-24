@@ -7,7 +7,7 @@ pipe = FluxControlImg2ImgPipeline.from_pretrained(
     "./models/FLUX.1-Canny-dev", torch_dtype=torch.bfloat16
 ).to("cuda")
 
-prompt = "full of furniture, living room, interior design, clean, tidy, ambient lighting"
+prompt = "full of furniture, living room, interior design, clean, tidy, ambient lighting, realistic, natural, high-quality"
 image = load_image(
     "inputs/b0.png"
 )
@@ -24,7 +24,7 @@ image = pipe(
     prompt=prompt,
     image=image,
     control_image=control_image,
-    strength=0.8,
+    strength=0.9,
     height=1024,
     width=1024,
     num_inference_steps=50,
