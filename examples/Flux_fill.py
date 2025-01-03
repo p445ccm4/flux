@@ -2,20 +2,31 @@ import torch
 from diffusers import FluxFillPipeline
 from diffusers.utils import load_image
 from PIL import ImageOps, Image
+import numpy as np
+import cv2
 
-image = load_image("./inputs/meme material/loming.jpg")
+image_path = "../ViewCrafter/outputs/panorama/d5.png"
+image = load_image(image_path)
 w, h = image.size
-image = image.resize((w//2, h//2))
-padded_image = ImageOps.expand(image, border=400, fill='white')
-mask = Image.new("L", image.size, 0)
-padded_mask = ImageOps.expand(mask, border=400, fill='white')
-w, h = padded_image.size
-padded_image.save("padded_image.jpg")
-padded_mask.save("padded_mask.jpg")
+
+if w > h*2:
+    h = w//2
+else:
+    w = h*2
+
+w, h = int(w//2), int(h//2)
+
+padded_image = ImageOps.pad(image, (w, h), color="black")
+padded_image.save(image_path.replace(".png", "_padded_image.png"))
+
+padded_mask = cv2.inRange(np.array(padded_image), np.array([0, 0, 0]), np.array([0, 0, 0]))
+padded_mask = cv2.dilate(padded_mask, np.ones((5, 5), np.uint8))
+# _, padded_mask = cv2.threshold(padded_mask, 1, 255, cv2.THRESH_BINARY)
+cv2.imwrite(image_path.replace(".png", "_padded_mask.png"), padded_mask)
 
 pipe = FluxFillPipeline.from_pretrained("./models/FLUX.1-Fill-dev", torch_dtype=torch.bfloat16).to("cuda")
 image = pipe(
-    prompt="",
+    prompt="panorama image of an interior design image",
     image=padded_image,
     mask_image=padded_mask,
     height=h,
@@ -25,4 +36,4 @@ image = pipe(
     max_sequence_length=512,
     generator=torch.Generator("cpu").manual_seed(0)
 ).images[0]
-image.save(f"flux-fill-dev.png")
+image.save(image_path.replace(".png", "_flux.png"))
