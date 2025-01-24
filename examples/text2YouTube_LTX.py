@@ -1,5 +1,5 @@
 import torch
-from diffusers import BitsAndBytesConfig as DiffusersBitsAndBytesConfig, HunyuanVideoTransformer3DModel, HunyuanVideoPipeline
+from diffusers import LTXPipeline
 from diffusers.utils import export_to_video
 import moviepy
 from gtts import gTTS
@@ -11,14 +11,8 @@ args = parser.parse_args()
 i = args.i
 
 # Load txt2vid model
-model_id = "./models/HunyuanVideo"
-# quant_config = DiffusersBitsAndBytesConfig(load_in_8bit=True)
-transformer = HunyuanVideoTransformer3DModel.from_pretrained(
-    model_id, subfolder="transformer", torch_dtype=torch.bfloat16#, quantization_config=quant_config
-)
-pipe = HunyuanVideoPipeline.from_pretrained(model_id, transformer=transformer, torch_dtype=torch.float16)
-pipe.vae.enable_tiling()
-pipe.enable_model_cpu_offload() 
+pipe = LTXPipeline.from_pretrained("./models/LTX-Video", torch_dtype=torch.bfloat16)
+pipe.to("cuda")
 
 def split_sentence(prompt, max_length=100):
     result = []
@@ -37,6 +31,8 @@ with open("inputs/peaks_vs_ages_rewrite.txt") as f:
     sentences = [line.strip() for line in lines if line != "\n" and not line.startswith("(\"")]
     prompts = [line.strip()[2:-2] for line in lines if line != "\n" and line.startswith("(\"")]
     assert len(sentences) == len(prompts), f"sentences: {len(sentences)}, prompts: {len(prompts)}"
+negative_prompt = "worst quality, inconsistent motion, blurry, jittery, distorted"
+
 
 # clips = []
 prompt = prompts[i]
@@ -45,29 +41,40 @@ print(f"i: {i}\nsentence: {sentence}\nprompt: {prompt}\n")
 
 # Generate audios
 audio = gTTS(sentence, lang="en", tld="us") # leng="yue" for Cantonese
-audio.save(f"outputs/HunYuan/{i}.mp3")
-audio_clip = moviepy.AudioFileClip(f"outputs/HunYuan/{i}.mp3")
+audio.save(f"outputs/LTX/{i}.mp3")
+audio_clip = moviepy.AudioFileClip(f"outputs/LTX/{i}.mp3")
 
 # Generate videos
-num_frames = int(audio_clip.duration * 15 * 4 // 4 + 1)
+num_frames = int(audio_clip.duration * 15 * 8 // 8 + 1)
 print(f"num_frames: {num_frames}")
 output = pipe(
-    prompt=f"prompt",
-    height=544,
-    width=960,
+    prompt=prompt,
+    negative_prompt=negative_prompt,
+    width=768,
+    height=512,
     num_frames=num_frames,
-    num_inference_steps=40,
+    num_inference_steps=50,
 ).frames[0]
-export_to_video(output, f"outputs/HunYuan/{i}.mp4", fps=15)
+export_to_video(output, f"outputs/LTX/{i}.mp4", fps=15)
 
 # Put caption on each video
-video_path = f"outputs/HunYuan/{i}.mp4"
-output_path = f"outputs/HunYuan/{i}_captioned.mp4"
+video_path = f"outputs/LTX/{i}.mp4"
+output_path = f"outputs/LTX/{i}_captioned.mp4"
 video_clip = moviepy.VideoFileClip(video_path)
 text_clip = (
-    moviepy.TextClip(font="Chilanka-Regular", text=split_sentence(sentence, max_length=50), font_size=30, color="white")
-    .with_position(("center", "bottom"))
-    .with_duration(video_clip.duration)
+       moviepy.TextClip(
+           font="Chilanka-Regular", 
+           text=split_sentence(sentence, max_length=50), 
+           method="caption",
+           size=(video_clip.w, None),
+           font_size=30, 
+           color="white", 
+           stroke_color="black", 
+           stroke_width=1,
+           text_align="center",
+           )
+           .with_position(("center", "bottom"))
+           .with_duration(video_clip.duration)
 )
 video_text_clip = moviepy.CompositeVideoClip(clips=[video_clip, text_clip])
 video_text_audio_clip = video_text_clip.with_audio(audio_clip)
@@ -76,4 +83,4 @@ video_text_audio_clip.write_videofile(output_path)
 
 # # Concatenate all clips
 # concat_clip = moviepy.concatenate_videoclips(clips)
-# concat_clip.write_videofile("outputs/HunYuan/concat_captioned.mp4")
+# concat_clip.write_videofile("outputs/LTX/concat_captioned.mp4")
