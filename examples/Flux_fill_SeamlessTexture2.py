@@ -6,13 +6,6 @@ import numpy as np
 import os
 import argparse
 
-def pad_image(image, w_border, h_border, output_path):
-    padded_image = ImageOps.expand(image, border=(w_border, h_border), fill="black")
-    padded_output_path = output_path + "_1_padded_image.png"
-    padded_image.save(padded_output_path)
-    print(f"Padded image saved at: {padded_output_path}")
-    return padded_image
-
 def rearrange_quadrants(image_np, output_path, suffix):
     h_mid, w_mid = image_np.shape[0] // 2, image_np.shape[1] // 2
     top_left = image_np[:h_mid, :w_mid]
@@ -34,8 +27,8 @@ def rearrange_quadrants(image_np, output_path, suffix):
 
 def create_mask(image_np, h, w, h_border, w_border, output_path):
     mask = np.zeros_like(image_np, dtype=np.uint8)
-    mask[h // 2:h // 2 + h_border * 2, :] = 255
-    mask[:, w // 2:w // 2 + w_border * 2] = 255
+    mask[h // 2 - h_border:h // 2 + h_border, :] = 255
+    mask[:, w // 2 - w_border:w // 2 + w_border] = 255
 
     mask_image = Image.fromarray(mask)
     mask_path = output_path + "_3_mask.png"
@@ -84,14 +77,14 @@ def create_prompt(image, output_path):
 
     return description
 
-def flux_fill(image, mask, prompt, h, w, h_border, w_border, output_path):
+def flux_fill(image, mask, prompt, h, w, output_path):
     pipe = FluxFillPipeline.from_pretrained("./models/FLUX.1-Fill-dev", torch_dtype=torch.bfloat16).to("cuda")
     flux_image = pipe(
         prompt=prompt,
         image=image,
         mask_image=mask,
-        height=h + h_border * 2,
-        width=w + w_border * 2,
+        height=h,
+        width=w,
         guidance_scale=30,
         num_inference_steps=50,
         max_sequence_length=512,
@@ -124,17 +117,16 @@ if __name__ == "__main__":
         original_image = load_image(image_path)
         output_path = os.path.join("outputs/Flux_fill_SeamlessTexture", os.path.basename(image_path).split(".")[0])
         original_image.save(output_path + "_original.png")
-        image = original_image.crop((100, 100, 900, 900))
+        image = original_image.crop((100, 100, 1900, 1900))
         image.save(output_path + "_0_cropped.png")
 
         w, h = image.size
         w_border, h_border = w // 10, h // 10
-        padded_image = pad_image(image, w_border, h_border, output_path)
-        padded_image_np = np.array(padded_image)
-        rearranged_image = rearrange_quadrants(padded_image_np, output_path, suffix="_2_rearranged.png")
-        mask = create_mask(padded_image_np, h, w, h_border, w_border, output_path)
+        image_np = np.array(image)
+        rearranged_image = rearrange_quadrants(image_np, output_path, suffix="_2_rearranged.png")
+        mask = create_mask(image_np, h, w, h_border, w_border, output_path)
         prompt = create_prompt(image, output_path)
-        flux_image = flux_fill(rearranged_image, mask, prompt, h, w, h_border, w_border, output_path)
+        flux_image = flux_fill(rearranged_image, mask, prompt, h, w, output_path)
         flux_image_np = np.array(flux_image)
         final_image = rearrange_quadrants(flux_image_np, output_path, suffix="_5_final.png")
 
