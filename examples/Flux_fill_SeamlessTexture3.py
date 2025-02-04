@@ -111,7 +111,7 @@ def flux_fill(image, mask, prompt, h, w, output_path):
         height=h,
         width=w,
         guidance_scale=30,
-        num_inference_steps=50,
+        num_inference_steps=100,
         max_sequence_length=512,
         generator=torch.Generator("cpu").manual_seed(0)
     ).images[0]
@@ -142,7 +142,7 @@ if __name__ == "__main__":
         original_image = load_image(image_path)
         output_path = os.path.join("outputs/Flux_fill_SeamlessTexture", os.path.basename(image_path).split(".")[0])
         original_image.save(output_path + "_original.png")
-        image = original_image.crop((100, 100, 900, 900))
+        image = original_image.crop((100, 100, 900, 900)).resize((400, 400))
         image.save(output_path + "_0_cropped.png")
 
         w, h = image.size
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         create_seamless_check(final_image, "_9_final_seamless.png", output_path)
 
     if os.path.isdir(args.image_path):
-        for filename in os.listdir(args.image_path):
+        for filename in sorted(os.listdir(args.image_path)):
             if filename.endswith(".jpg") or filename.endswith(".png"):
                 process_image(os.path.join(args.image_path, filename))
     else:
