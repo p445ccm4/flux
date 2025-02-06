@@ -2,9 +2,9 @@
 
 failed_indices=()
 
-for i in {11..58}
+for i in {0..59}
 do
-    python examples/text2YouTube_HunYuan.py -i $i
+    python AI_YouTuber/text2YouTube_HunYuan.py -i $i
     if [ $? -ne 0 ]; then
         echo "Error encountered with i=$i. Skipping..."
         failed_indices+=($i)

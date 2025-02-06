@@ -48,18 +48,18 @@ audio = gTTS(sentence, lang="en", tld="us") # leng="yue" for Cantonese
 audio.save(f"outputs/HunYuan/{i}.mp3")
 audio_clip = moviepy.AudioFileClip(f"outputs/HunYuan/{i}.mp3")
 
-if i != 0:
-    # Generate videos
-    num_frames = int(audio_clip.duration * 15 * 4 // 4 + 1)
-    print(f"num_frames: {num_frames}")
-    output = pipe(
-        prompt=f"prompt",
-        height=544,
-        width=960,
-        num_frames=num_frames,
-        num_inference_steps=40,
-    ).frames[0]
-    export_to_video(output, f"outputs/HunYuan/{i}.mp4", fps=15)
+fps = 5
+# Generate videos
+num_frames = int(audio_clip.duration * fps * 4 // 4 + 1)
+print(f"num_frames: {num_frames}")
+output = pipe(
+    prompt=f"{prompt}",
+    height=720,
+    width=1280,
+    num_frames=num_frames,
+    num_inference_steps=40,
+).frames[0]
+export_to_video(output, f"outputs/HunYuan/{i}.mp4", fps=fps)
 
 # Put caption on each video
 video_path = f"outputs/HunYuan/{i}.mp4"
