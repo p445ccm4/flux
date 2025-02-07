@@ -9,7 +9,7 @@ class AudioGenerator:
 
     def generate_audio(self, sentence, index):
         temp_audio_path = f"{self.output_dir}/{index}_temp.mp3"
-        audio = gTTS(sentence, lang="yue") # lang="yue" for Cantonese, (lang="en", tld="us") for US English
+        audio = gTTS(sentence, lang="en", tld="us") # lang="yue" for Cantonese, (lang="en", tld="us") for US English
         audio.save(temp_audio_path)
         return temp_audio_path
 

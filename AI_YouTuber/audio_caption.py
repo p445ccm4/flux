@@ -22,14 +22,14 @@ class VideoCaptioner:
                 text=self.caption, 
                 method="caption",
                 size=(video_clip.w, None),
-                font_size=30, 
+                font_size=80, 
                 color="white", 
                 bg_color=None,
                 stroke_color="black", 
                 stroke_width=1,
                 text_align="center",
             )
-            .with_position(("center", "bottom"))
+            .with_position(("center", 900))
             .with_duration(video_clip.duration)
         )
         

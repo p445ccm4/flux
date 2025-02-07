@@ -5,7 +5,7 @@ import moviepy
 import argparse
 
 class VideoGenerator:
-    def __init__(self, model_id, output_dir="outputs/HunYuan"):
+    def __init__(self, output_dir="outputs/HunYuan"):
         model_id = "./models/HunyuanVideo"
         self.output_dir = output_dir
         self.transformer = HunyuanVideoTransformer3DModel.from_pretrained(
@@ -22,8 +22,8 @@ class VideoGenerator:
         print(f"num_frames: {num_frames}")
         output = self.pipe(
             prompt=prompt,
-            height=720,
-            width=1280,
+            height=1280,
+            width=720,
             num_frames=num_frames,
             num_inference_steps=40,
         ).frames[0]
