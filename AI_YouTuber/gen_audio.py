@@ -19,10 +19,13 @@ class AudioGenerator:
             os.remove(audio_path)
         subprocess.call([
             "ffmpeg",
+            "-hide_banner",
+            "-loglevel", "error",
             "-i", temp_audio_path,
             "-filter:a", f"atempo={speed_factor}",
             audio_path
         ])
+        os.remove(temp_audio_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate videos from text prompts.")

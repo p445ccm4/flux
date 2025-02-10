@@ -4,6 +4,7 @@ from diffusers.utils import export_to_video
 import torch
 import torchvision
 import argparse
+import os
 
 def sort_by_startint(a):
     return int(a.split("_")[0])
@@ -52,6 +53,9 @@ def main():
 
     interpolator = FrameInterpolator()
     interpolator.interpolate(args.input_video_path, args.output_video_path)
+            
+    # Delete the original video
+    os.remove(args.input_video_path)
 
 if __name__ == "__main__":
     main()

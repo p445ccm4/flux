@@ -1,4 +1,5 @@
 import argparse
+import os
 import moviepy
 
 class VideoCaptioner:
@@ -22,6 +23,7 @@ class VideoCaptioner:
                 text=self.caption, 
                 method="caption",
                 size=(video_clip.w, None),
+                margin=(50, 50),
                 font_size=80, 
                 color="white", 
                 bg_color=None,
@@ -38,7 +40,7 @@ class VideoCaptioner:
         video_text_audio_clip = video_text_clip.with_audio(audio_clip)
         
         # Write the output video file
-        video_text_audio_clip.write_videofile(self.output_video_path)
+        video_text_audio_clip.write_videofile(self.output_video_path, logger=None)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Add audio and caption to a video.")
@@ -57,3 +59,6 @@ if __name__ == "__main__":
     )
     
     captioner.add_audio_and_caption()
+            
+    # Delete the original video
+    os.remove(args.input_video_path)

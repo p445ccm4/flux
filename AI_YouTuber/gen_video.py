@@ -15,10 +15,12 @@ class VideoGenerator:
         self.pipe.vae.enable_tiling()
         self.pipe.enable_model_cpu_offload()
 
-    def generate_video(self, prompt, index, fps=5):
-        audio_path = f"{self.output_dir}/{index}.mp3"
-        audio_clip = moviepy.AudioFileClip(audio_path)
-        num_frames = int(audio_clip.duration * fps * 4 // 4 + 1)
+    def generate_video(self, prompt, index, fps=5, num_frames=None):
+        if num_frames is None:
+            audio_path = f"{self.output_dir}/{index}.mp3"
+            audio_clip = moviepy.AudioFileClip(audio_path)
+            num_frames = audio_clip.duration * fps
+        num_frames = int(num_frames // 4 * 4 + 1)
         print(f"num_frames: {num_frames}")
         output = self.pipe(
             prompt=prompt,
@@ -34,7 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("-i", type=int, required=True, help="Index of the prompt to process")
     parser.add_argument("-e", type=str, required=True, help="English prompt")
     parser.add_argument("-o", type=str, default="outputs/HunYuan", help="Output directory")
+    parser.add_argument("-n", "--num_frames", type=int, default=None, help="Number of frames to generate")
     args = parser.parse_args()
 
     generator = VideoGenerator(output_dir=args.o)
-    generator.generate_video(args.e, args.i)
+    generator.generate_video(args.e, args.i, num_frames=args.num_frames)

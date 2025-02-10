@@ -18,7 +18,7 @@ class VideoConcatenator:
 
         # Concatenate all clips
         concat_clip = mp.concatenate_videoclips(clips)
-        concat_clip.write_videofile(os.path.join(self.working_dir, "concat.mp4"))
+        concat_clip.write_videofile(os.path.join(self.working_dir, "concat.mp4"), logger=None)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Concatenate video clips in a directory.")
