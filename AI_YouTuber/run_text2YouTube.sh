@@ -4,9 +4,9 @@ source activate base
 conda activate flux
 
 # Set default values
-json_file="inputs/AI_YouTuber/scripts/Zodiac_Aries.json"
-working_dir="outputs/HunYuan/Zodiac_Aries_20250210"
-music_path="inputs/AI_YouTuber/music/Zodiac_Aries.m4a"
+json_file="inputs/AI_YouTuber/scripts/News_trump_ditches_penny.json"
+working_dir="outputs/HunYuan/20250211_News_trump_ditches_penny"
+music_path="inputs/AI_YouTuber/music/News.m4a"
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
@@ -63,7 +63,7 @@ trap 'echo "Failed iterations so far: ${failed_indices[@]}"; exit' INT TERM
 if [ ${#failed_indices[@]} -eq 0 ]; then
         echo "All iterations completed successfully!"
         python AI_YouTuber/concat.py -o $working_dir
-        python AI_YouTuber/bg_music.py --input_video_path $working_dir/concat.mp4 --music_path "$music_path" --output_video_path $working_dir/final.mp4
+        python AI_YouTuber/bg_music.py --input_video_path $working_dir/concat.mp4 --music_path "$music_path" --output_video_path $working_dir.mp4
         echo "concat.py completed successfully!"
 else
         echo "Some iterations failed. concat.py will not be run."
