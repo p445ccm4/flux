@@ -3,11 +3,13 @@ from diffusers import HunyuanVideoTransformer3DModel, HunyuanVideoPipeline
 from diffusers.utils import export_to_video
 import moviepy
 import argparse
+import os
+import logging
 
 class VideoGenerator:
-    def __init__(self, output_dir="outputs/HunYuan"):
+    def __init__(self, logger=None):
+        self.logger = logger
         model_id = "./models/HunyuanVideo"
-        self.output_dir = output_dir
         self.transformer = HunyuanVideoTransformer3DModel.from_pretrained(
             model_id, subfolder="transformer", torch_dtype=torch.bfloat16
         )
@@ -15,13 +17,17 @@ class VideoGenerator:
         self.pipe.vae.enable_tiling()
         self.pipe.enable_model_cpu_offload()
 
-    def generate_video(self, prompt, index, fps=5, num_frames=None):
+    def generate_video(self, prompt, index, output_video_path, fps=5, num_frames=None):
+        output_dir = os.path.dirname(output_video_path)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
         if num_frames is None:
-            audio_path = f"{self.output_dir}/{index}.mp3"
+            audio_path = f"{output_dir}/{index}.mp3"
             audio_clip = moviepy.AudioFileClip(audio_path)
             num_frames = audio_clip.duration * fps
         num_frames = int(num_frames // 4 * 4 + 1)
-        print(f"num_frames: {num_frames}")
+        self.logger.info(f"num_frames: {num_frames}")
         output = self.pipe(
             prompt=prompt,
             height=1280,
@@ -29,15 +35,19 @@ class VideoGenerator:
             num_frames=num_frames,
             num_inference_steps=40,
         ).frames[0]
-        export_to_video(output, f"{self.output_dir}/{index}.mp4", fps=fps)
+        export_to_video(output, output_video_path, fps=fps)
+        self.logger.info(f"Video saved to {output_video_path}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
     parser = argparse.ArgumentParser(description="Generate videos from text prompts.")
-    parser.add_argument("-i", type=int, required=True, help="Index of the prompt to process")
-    parser.add_argument("-e", type=str, required=True, help="English prompt")
-    parser.add_argument("-o", type=str, default="outputs/HunYuan", help="Output directory")
+    parser.add_argument("-i", "--index", type=int, required=True, help="Index of the prompt to process")
+    parser.add_argument("-e", "--prompt", type=str, required=True, help="Prompt")
+    parser.add_argument("-o", "--output_video_path", type=str, default="outputs/HunYuan/output.mp4", help="Output video path")
     parser.add_argument("-n", "--num_frames", type=int, default=None, help="Number of frames to generate")
     args = parser.parse_args()
 
-    generator = VideoGenerator(output_dir=args.o)
-    generator.generate_video(args.e, args.i, num_frames=args.num_frames)
+    generator = VideoGenerator(logger)
+    generator.generate_video(args.e, args.i, args.output_video_path, num_frames=args.num_frames)

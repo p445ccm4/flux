@@ -1,26 +1,24 @@
 import argparse
 import os
 import moviepy
+import logging
 
 class VideoCaptioner:
-    def __init__(self, audio_path, caption, input_video_path, output_video_path):
-        self.audio_path = audio_path
-        self.caption = caption
-        self.input_video_path = input_video_path
-        self.output_video_path = output_video_path
+    def __init__(self, logger=None):
+        self.logger = logger or logging.getLogger(__name__)
 
-    def add_audio_and_caption(self):
+    def add_audio_and_caption(self, audio_path, input_video_path, output_video_path, caption):
         # Load audio
-        audio_clip = moviepy.AudioFileClip(self.audio_path)
+        audio_clip = moviepy.AudioFileClip(audio_path)
         
         # Load video
-        video_clip = moviepy.VideoFileClip(self.input_video_path)
+        video_clip = moviepy.VideoFileClip(input_video_path)
         
         # Create text clip
         text_clip = (
             moviepy.TextClip(
                 font="Chilanka-Regular", 
-                text=self.caption, 
+                text=caption, 
                 method="caption",
                 size=(video_clip.w, None),
                 margin=(50, 50),
@@ -28,7 +26,7 @@ class VideoCaptioner:
                 color="white", 
                 bg_color=None,
                 stroke_color="black", 
-                stroke_width=1,
+                stroke_width=2,
                 text_align="center",
             )
             .with_position(("center", 900))
@@ -40,9 +38,16 @@ class VideoCaptioner:
         video_text_audio_clip = video_text_clip.with_audio(audio_clip)
         
         # Write the output video file
-        video_text_audio_clip.write_videofile(self.output_video_path, logger=None)
+        video_text_audio_clip.write_videofile(output_video_path, logger=None)
+
+        # Delete the original video
+        os.remove(input_video_path)
+        
+        self.logger.info(f"Successfully added audio and caption to video: {output_video_path}")
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    
     parser = argparse.ArgumentParser(description="Add audio and caption to a video.")
     parser.add_argument("--audio_path", type=str, help="Path to the audio file")
     parser.add_argument("--caption", type=str, help="Caption text to add to the video")
@@ -51,14 +56,11 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    captioner = VideoCaptioner(
-        audio_path=args.audio_path,
-        caption=args.caption,
-        input_video_path=args.input_video_path,
-        output_video_path=args.output_video_path
-    )
+    captioner = VideoCaptioner()
     
-    captioner.add_audio_and_caption()
-            
-    # Delete the original video
-    os.remove(args.input_video_path)
+    captioner.add_audio_and_caption(
+        audio_path=args.audio_path,
+        input_video_path=args.input_video_path,
+        output_video_path=args.output_video_path,
+        caption=args.caption
+    )
