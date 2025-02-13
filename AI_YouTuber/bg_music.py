@@ -7,7 +7,7 @@ from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip
 
 class BackgroundMusicAdder:
     def __init__(self, logger=None):
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger if logger else logging.getLogger(__name__)
 
     def add_background_music(self, input_video_path, music_path, output_video_path):
         """

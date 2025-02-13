@@ -2,7 +2,7 @@ import os
 import text2YTShorts_single
 import logging
 
-topic_file = "inputs/AI_YouTuber/20250212.topics"
+topic_file = "inputs/AI_YouTuber/20250213.topics"
 with open(topic_file, 'r') as f:
     lines = f.readlines()
 
@@ -25,7 +25,7 @@ for line in lines:
     os.makedirs(working_dir, exist_ok=True)
     if not os.path.exists(log_file):
         open(log_file, 'a').close()
-    logging.basicConfig(filename=log_file, level=logging.INFO, 
+    logging.basicConfig(filename=log_file, level=logging.ERROR, 
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
     print(f"Starting processing for {topic}")
@@ -35,9 +35,10 @@ for line in lines:
             working_dir, 
             music_path, 
             indices_to_process,
-            logger=logging)
+            logger=logging.getLogger(log_file)
+        )
         shorts_maker.run()
         print(f"Finished processing {topic} successfully")
     except Exception as e:
-        print(f"Error processing {topic}: {e}", exc_info=True)
+        print(f"Error processing {topic}: {e}")
 

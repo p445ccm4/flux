@@ -8,7 +8,7 @@ import logging
 
 class VideoGenerator:
     def __init__(self, logger=None):
-        self.logger = logger
+        self.logger = logger if logger else logging.getLogger(__name__)
         model_id = "./models/HunyuanVideo"
         self.transformer = HunyuanVideoTransformer3DModel.from_pretrained(
             model_id, subfolder="transformer", torch_dtype=torch.bfloat16
@@ -23,9 +23,13 @@ class VideoGenerator:
             os.makedirs(output_dir)
 
         if num_frames is None:
-            audio_path = f"{output_dir}/{index}.mp3"
-            audio_clip = moviepy.AudioFileClip(audio_path)
-            num_frames = audio_clip.duration * fps
+            if index != -1:
+                audio_path = f"{output_dir}/{index}.mp3"
+                audio_clip = moviepy.AudioFileClip(audio_path)
+                num_frames = audio_clip.duration * fps
+            else:
+                num_frames = 1 # For Thumbnail
+
         num_frames = int(num_frames // 4 * 4 + 1)
         self.logger.info(f"num_frames: {num_frames}")
         output = self.pipe(
@@ -44,10 +48,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Generate videos from text prompts.")
     parser.add_argument("-i", "--index", type=int, required=True, help="Index of the prompt to process")
-    parser.add_argument("-e", "--prompt", type=str, required=True, help="Prompt")
+    parser.add_argument("-p", "--prompt", type=str, required=True, help="Prompt")
     parser.add_argument("-o", "--output_video_path", type=str, default="outputs/HunYuan/output.mp4", help="Output video path")
     parser.add_argument("-n", "--num_frames", type=int, default=None, help="Number of frames to generate")
     args = parser.parse_args()
 
     generator = VideoGenerator(logger)
-    generator.generate_video(args.e, args.i, args.output_video_path, num_frames=args.num_frames)
+    generator.generate_video(args.prompt, args.index, args.output_video_path, num_frames=args.num_frames)

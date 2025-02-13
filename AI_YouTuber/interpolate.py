@@ -49,7 +49,7 @@ class FrameInterpolator:
         export_to_video(video_frames, output_video_path, fps=20)     
 
         # Delete the original video
-        os.remove(input_video_path)
+        # os.remove(input_video_path)
         self.logger.info(f"Interpolation complete. Output saved to {output_video_path}")
 
 def main():
