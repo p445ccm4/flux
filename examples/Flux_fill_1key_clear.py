@@ -1,5 +1,5 @@
 import torch
-from diffusers import FluxFillPipeline
+from diffusers import FluxInpaintPipeline
 from diffusers.utils import load_image
 import numpy as np
 from PIL import Image
@@ -19,8 +19,8 @@ for filename in image_list:
 # Define the desired and undesired suffixes
 desired_suffix = ".png"
 undesired_suffixes = ["masked_image.jpg", "1key_clear.png", "binary_mask.png"]
-pipe = FluxFillPipeline.from_pretrained(
-"./models/FLUX.1-Fill-dev", torch_dtype=torch.bfloat16
+pipe = FluxInpaintPipeline.from_pretrained(
+"./models/FLUX.1-dev", torch_dtype=torch.bfloat16
 ).to("cuda")
 
 # Loop through all desired files in the directory
@@ -30,7 +30,7 @@ for filename in image_list:
     ):
         image_path = os.path.join(image_dir, filename)
         print(f"Processing {image_path}...")
-        image = load_image(image_path)
+        image = load_image(image_path).resize((1280, 720))
         w, h = image.size
 
         # Convert the mask to grayscale
@@ -68,4 +68,4 @@ for filename in image_list:
         ).images[0]
 
         # Save the image
-        flux_image.save(image_path.replace(desired_suffix, "_1key_clear.png"))
+        flux_image.save(image_path.replace(desired_suffix, "_1key_clear_inpaint.png"))
