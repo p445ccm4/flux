@@ -1,5 +1,5 @@
 import torch
-from diffusers import FluxFillPipeline
+from FLUXControlnetInpainting import FluxControlNetModel, FluxTransformer2DModel, FluxControlNetInpaintingPipeline
 from diffusers.utils import load_image
 from PIL import ImageOps, Image
 import numpy as np
@@ -103,17 +103,32 @@ def create_prompt(image, output_path):
     return description
 
 def flux_fill(image, mask, prompt, h, w, output_path):
-    pipe = FluxFillPipeline.from_pretrained("./models/FLUX.1-Fill-dev", torch_dtype=torch.bfloat16).to("cuda")
+    # Build pipeline
+    controlnet = FluxControlNetModel.from_pretrained("./models/FLUX.1-dev-Controlnet-Inpainting-Beta", torch_dtype=torch.bfloat16)
+    transformer = FluxTransformer2DModel.from_pretrained(
+            "./models/FLUX.1-dev", subfolder='transformer', torch_dtype=torch.bfloat16
+        )
+    pipe = FluxControlNetInpaintingPipeline.from_pretrained(
+        "./models/FLUX.1-dev",
+        controlnet=controlnet,
+        transformer=transformer,
+        torch_dtype=torch.bfloat16
+    ).to("cuda")
+    pipe.transformer.to(torch.bfloat16)
+    pipe.controlnet.to(torch.bfloat16)
+
     flux_image = pipe(
         prompt=prompt,
-        image=image,
-        mask_image=mask,
+        control_image=image,
+        control_mask=mask,
         height=h,
         width=w,
-        guidance_scale=30,
-        num_inference_steps=100,
-        max_sequence_length=512,
-        generator=torch.Generator("cpu").manual_seed(0)
+        num_inference_steps=28,
+        generator=torch.Generator(device="cuda").manual_seed(24),
+        controlnet_conditioning_scale=0.9,
+        guidance_scale=3.5,
+        negative_prompt="borders, breaking, boundaries, discontinuity",
+        true_guidance_scale=1.0 # default: 3.5 for alpha and 1.0 for beta
     ).images[0]
     flux_output_path = output_path + "_4_flux.png"
     flux_image.save(flux_output_path)
@@ -140,7 +155,7 @@ if __name__ == "__main__":
 
     def process_image(image_path):
         original_image = load_image(image_path)
-        output_path = os.path.join("outputs/Flux_fill_SeamlessTexture", os.path.basename(image_path).split(".")[0])
+        output_path = os.path.join("outputs/Flux_ConInp_SeamlessTexture", os.path.basename(image_path).split(".")[0])
         original_image.save(output_path + "_original.png")
         image = original_image.crop((100, 100, 900, 900)).resize((400, 400))
         image.save(output_path + "_0_cropped.png")
