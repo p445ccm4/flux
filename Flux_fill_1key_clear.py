@@ -1,5 +1,5 @@
 import torch
-from diffusers import FluxInpaintPipeline
+from FLUXControlnetInpainting import FluxControlNetModel, FluxTransformer2DModel, FluxControlNetInpaintingPipeline
 from diffusers.utils import load_image
 import numpy as np
 from PIL import Image
@@ -19,9 +19,19 @@ for filename in image_list:
 # Define the desired and undesired suffixes
 desired_suffix = ".png"
 undesired_suffixes = ["masked_image.jpg", "1key_clear.png", "binary_mask.png"]
-pipe = FluxInpaintPipeline.from_pretrained(
-"./models/FLUX.1-dev", torch_dtype=torch.bfloat16
+# Build pipeline
+controlnet = FluxControlNetModel.from_pretrained("./models/FLUX.1-dev-Controlnet-Inpainting-Beta", torch_dtype=torch.bfloat16)
+transformer = FluxTransformer2DModel.from_pretrained(
+        "./models/FLUX.1-dev", subfolder='transformer', torch_dtype=torch.bfloat16
+    )
+pipe = FluxControlNetInpaintingPipeline.from_pretrained(
+    "./models/FLUX.1-dev",
+    controlnet=controlnet,
+    transformer=transformer,
+    torch_dtype=torch.bfloat16
 ).to("cuda")
+pipe.transformer.to(torch.bfloat16)
+pipe.controlnet.to(torch.bfloat16)
 
 # Loop through all desired files in the directory
 for filename in image_list:
@@ -56,15 +66,21 @@ for filename in image_list:
         mask = Image.fromarray(dilation)
         mask.save(image_path.replace(desired_suffix, "_binary_mask.png"))
 
+        prompt="an empty room, blank room, clean, nothing, clear, plain, bright, light"
+
+        # Run the pipeline
         flux_image = pipe(
-            prompt="an empty room, blank room, clean, nothing, clear, plain, bright, light",
-            image=image,
-            mask_image=mask,
+            prompt=prompt,
+            control_image=image,
+            control_mask=mask,
             height=h,
             width=w,
-            guidance_scale=70,
-            num_inference_steps=50,
-            generator=torch.Generator("cpu").manual_seed(0),
+            num_inference_steps=28,
+            generator=torch.Generator(device="cuda").manual_seed(24),
+            controlnet_conditioning_scale=0.9,
+            guidance_scale=3.5,
+            negative_prompt="",
+            true_guidance_scale=1.0 # default: 3.5 for alpha and 1.0 for beta
         ).images[0]
 
         # Save the image

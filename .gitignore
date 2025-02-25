@@ -2,3 +2,4 @@ inputs
 outputs
 models
 *.mp4
+__pycache__
