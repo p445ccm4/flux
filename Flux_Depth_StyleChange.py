@@ -54,11 +54,11 @@ def resize_and_pad_image(image, resize_width, resize_height): # Added target_siz
     return padded_image, offset_x, offset_y, new_w, new_h
 
 
-with open("inputs/style_prompts.json", "r") as f:
+with open("inputs/office_style_prompts.json", "r") as f:
         data = json.load(f)
         styles_data = data["styles"]
 
-for image_path in sorted([os.path.join(working_dir, f) for f in os.listdir(working_dir) if f.endswith((".png", ".jpg", ".jpeg"))]):
+for image_path in sorted([os.path.join(working_dir, f) for f in os.listdir(working_dir) if f.endswith((".png", ".jpg", ".jpeg")) and f.startswith("c")]):
         image_basename = os.path.splitext(os.path.basename(image_path))[0]
         original_image = load_image(image_path)
         original_w, original_h = original_image.size

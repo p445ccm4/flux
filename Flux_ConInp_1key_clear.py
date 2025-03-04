@@ -79,7 +79,7 @@ for filename in image_list:
             generator=torch.Generator(device="cuda").manual_seed(24),
             controlnet_conditioning_scale=0.9,
             guidance_scale=3.5,
-            negative_prompt="",
+            negative_prompt="blur, low resolution, people, furniture",
             true_guidance_scale=1.0 # default: 3.5 for alpha and 1.0 for beta
         ).images[0]
 

@@ -61,18 +61,6 @@ def create_mask(h, w, h_border, w_border, output_path):
     return mask_image
 
 def create_prompt(image, output_path):
-    # from transformers import AutoProcessor, Blip2ForConditionalGeneration
-    # # Load the processor and model
-    # processor = AutoProcessor.from_pretrained("./models/blip2-opt-2.7b")
-    # model = Blip2ForConditionalGeneration.from_pretrained("./models/blip2-opt-2.7b", torch_dtype=torch.float16).to("cuda")
-    
-    # # Preprocess the image
-    # inputs = processor(image, return_tensors="pt").to("cuda", torch.float16)
-    
-    # # Generate the description
-    # generated_ids = model.generate(**inputs, max_new_tokens=20)
-    # description = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-    
     from transformers import AutoProcessor, AutoModelForCausalLM 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
