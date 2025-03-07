@@ -1,25 +1,25 @@
 import torch
-from diffusers import FluxImg2ImgPipeline
-from diffusers.utils import load_image
+from diffusers import FluxPipeline
 
-input_image = "inputs/b0.png"
+class Flux():
+    def __init__(self):
+        self.pipe = FluxPipeline.from_pretrained(
+            "./models/FLUX.1-dev", 
+            torch_dtype=torch.bfloat16
+        ).to("cuda")
 
-device = "cuda"
-pipe = FluxImg2ImgPipeline.from_pretrained("./models/FLUX.1-dev", torch_dtype=torch.bfloat16)
-pipe = pipe.to(device)
+    def gen_image(self, prompt):
+        image = self.pipe(
+            prompt=prompt,
+            num_inference_steps=40, 
+            guidance_scale=30.0,
+            width=1024, 
+            height=1024,
+        ).images[0]
 
-init_image = load_image(input_image)
-w, h = init_image.size
-
-prompt = "many furniture, living room, interior design, clean, tidy, ambient lighting"
-
-image = pipe(
-    prompt=prompt,
-    image=init_image, 
-    num_inference_steps=50, 
-    strength=0.7, 
-    guidance_scale=30.0,
-    width=w, 
-    height=h,
-).images[0]
-image.save("outputs/b0.png")
+        return image
+    
+if __name__ == "__main__":
+    flux = Flux()
+    image = flux.gen_image("A heart on the left and a brain on the right. A iPhone style toggle switch in the middle. The switch is set to the heart side. Flat and minimalistic style.")
+    image.save("output.jpg")

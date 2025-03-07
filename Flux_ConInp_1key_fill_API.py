@@ -82,6 +82,6 @@ if __name__ == "__main__":
     image_path = "inputs/1key_fill/b3.jpg"
     image_np = np.array(Image.open(image_path).convert("RGB").resize((1280, 720)))
 
-    filled_image_np = one_key_fill(image_np)
+    filled_image_np = one_key_fill(image_np, room_type="living room")
 
     Image.fromarray(filled_image_np).save("filled_image.jpg")
